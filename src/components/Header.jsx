@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+// src/components/Header.jsx
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 function Header({ onOpenLogin, onOpenContact }) {
   const navigate = useNavigate();
@@ -11,21 +12,19 @@ function Header({ onOpenLogin, onOpenContact }) {
   const loginMenuRef = useRef(null);
   const signUpMenuRef = useRef(null);
 
-  // Close menus when clicking outside
   useEffect(() => {
     const onDocClick = (e) => {
       const inLogin = loginMenuRef.current?.contains(e.target);
-      const inSign  = signUpMenuRef.current?.contains(e.target);
+      const inSign = signUpMenuRef.current?.contains(e.target);
       if (!inLogin && !inSign) {
         setShowLoginMenu(false);
         setShowSignUpMenu(false);
       }
     };
-    document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
   }, []);
 
-  // Close menus on route change
   useEffect(() => {
     setShowLoginMenu(false);
     setShowSignUpMenu(false);
@@ -33,15 +32,18 @@ function Header({ onOpenLogin, onOpenContact }) {
 
   const openRole = (role) => {
     setShowLoginMenu(false);
-    onOpenLogin(role);
+    onOpenLogin?.(role);
   };
 
   const goFeatures = () => {
-    if (location.pathname === '/') {
-      const el = document.getElementById('features');
-      if (el) { el.scrollIntoView({ behavior: 'smooth' }); return; }
+    if (location.pathname === "/") {
+      const el = document.getElementById("features");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
     }
-    navigate('/features');
+    navigate("/features");
   };
 
   const goRolePricing = (role) => {
@@ -49,151 +51,179 @@ function Header({ onOpenLogin, onOpenContact }) {
     navigate(`/pricing?role=${role}`);
   };
 
+  const onHomeClick = (e) => {
+    if (location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const HEADER_HEIGHT = "clamp(150px, 18vw, 240px)";
+  const PADDING_X = 24;
+
   return (
     <div
       style={{
-        position: 'relative',
-        height: '300px',
+        position: "relative",
+        height: HEADER_HEIGHT,
         backgroundImage: 'url("/header-bg.png")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        padding: '0 60px',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
       <style>{`
-        .nav-btn:hover { outline: 2px solid #F7931E; outline-offset: 0; }
-        .menu-item:hover { outline: 2px solid #F7931E; outline-offset: 0; background: #f9fafb; color:#111827; }
+        .nav-btn {
+          background-color:#1f2937;
+          color:#fff;
+          padding:10px 16px;
+          border-radius:8px;
+          font-weight:600;
+          border:none;
+          cursor:pointer;
+          transition: box-shadow .15s ease, transform .05s ease;
+        }
+
+        /* 🔥 STRONGER WARNING ORANGE GLOW */
+        .nav-btn:hover,
+        .nav-btn:focus-visible {
+          box-shadow:
+            0 0 0 2px rgba(255, 149, 0, 0.55),
+            0 0 16px 6px rgba(255, 149, 0, 0.75);
+          outline: none;
+        }
+
+        .nav-btn:active {
+          transform: translateY(1px);
+          box-shadow:
+            0 0 0 2px rgba(255, 149, 0, 0.65),
+            0 0 10px 4px rgba(255, 149, 0, 0.85);
+        }
+
+        .menu-panel {
+          position:absolute;
+          top:48px;
+          right:0;
+          background:#1f2937;
+          color:#fff;
+          border-radius:8px;
+          padding:6px;
+          min-width:220px;
+          z-index:1000;
+          display:flex;
+          flex-direction:column;
+          box-shadow: 0 10px 20px rgba(0,0,0,0.18);
+        }
+
+        .menu-item {
+          background:transparent;
+          border:none;
+          text-align:left;
+          padding:10px 12px;
+          border-radius:6px;
+          cursor:pointer;
+          color:#fff;
+          font-weight:600;
+          transition: box-shadow .15s ease, background .15s ease, color .15s ease;
+        }
+
+        .menu-item:hover,
+        .menu-item:focus-visible {
+          background:#111827;
+          box-shadow:
+            0 0 0 2px rgba(255, 149, 0, 0.55),
+            0 0 16px 6px rgba(255, 149, 0, 0.75);
+          outline: none;
+        }
       `}</style>
 
-      {/* Logo -> Home */}
-      <img
-        src="/TRUSTA_logo_transparent.png"
-        alt="TRUSTA Logo"
-        onClick={() => navigate('/')}
-        style={{
-          position: 'absolute',
-          top: '10px',
-          left: '60px',
-          height: '320px',
-          width: 'auto',
-          objectFit: 'contain',
-          cursor: 'pointer',
-          pointerEvents: 'auto',
-        }}
-      />
-
-      {/* Primary navigation */}
       <div
         style={{
-          position: 'absolute',
-          bottom: '20px',
-          right: '60px',
-          display: 'flex',
-          gap: '12px',
-          alignItems: 'center',
-          flexWrap: 'wrap',
+          height: "100%",
+          paddingLeft: PADDING_X,
+          paddingRight: PADDING_X,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <button className="nav-btn" style={navBtn} onClick={() => navigate('/')}>Home</button>
-        <button className="nav-btn" style={navBtn} onClick={() => navigate('/pricing')}>Pricing</button>
-        <button className="nav-btn" style={navBtn} onClick={() => navigate('/about')}>About Us</button>
-        <button className="nav-btn" style={navBtn} onClick={goFeatures}>Features</button>
-
-        {/* Sign Up dropdown */}
-        <div style={{ position: 'relative' }} ref={signUpMenuRef}>
-          <button
-            className="nav-btn"
-            style={navBtn}
-            onClick={(e) => { e.stopPropagation(); setShowSignUpMenu(v => !v); }}
-            aria-expanded={showSignUpMenu}
-            aria-haspopup="true"
-          >
-            Sign Up ▾
-          </button>
-
-          {showSignUpMenu && (
-            <div style={menuStyle} role="menu" aria-label="Sign up menu">
-              <button className="menu-item" style={menuItemStyle} onClick={() => goRolePricing('builder')}>
-                Builder / Developer
-              </button>
-              <button className="menu-item" style={menuItemStyle} onClick={() => goRolePricing('contractor')}>
-                Contractor
-              </button>
-              <button className="menu-item" style={menuItemStyle} onClick={() => goRolePricing('client')}>
-                Client / Homeowner
-              </button>
-            </div>
-          )}
+        {/* Logo */}
+        <div style={{ marginTop: 10 }}>
+          <Link to="/" onClick={onHomeClick}>
+            <img
+              src="/logo-trusta.png"
+              alt="Trusta"
+              style={{
+                width: "clamp(240px, 28vw, 460px)",
+                height: "auto",
+                objectFit: "contain",
+              }}
+            />
+          </Link>
         </div>
 
-        {/* Login dropdown */}
-        <div style={{ position: 'relative' }} ref={loginMenuRef}>
-          <button
-            className="nav-btn"
-            style={navBtn}
-            onClick={(e) => { e.stopPropagation(); setShowLoginMenu(v => !v); }}
-            aria-expanded={showLoginMenu}
-            aria-haspopup="true"
-          >
-            Login ▾
-          </button>
+        {/* Nav */}
+        <div
+          style={{
+            marginTop: "auto",
+            paddingBottom: 10,
+            display: "flex",
+            gap: 10,
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+          }}
+        >
+          <button className="nav-btn" onClick={() => navigate("/")}>Home</button>
+          <button className="nav-btn" onClick={() => navigate("/pricing")}>Pricing</button>
+          <button className="nav-btn" onClick={() => navigate("/about")}>About Us</button>
+          <button className="nav-btn" onClick={goFeatures}>Features</button>
 
-          {showLoginMenu && (
-            <div style={menuStyle} role="menu" aria-label="Login menu">
-              <button className="menu-item" style={menuItemStyle} onClick={() => openRole('builder')}>Builder</button>
-              <button className="menu-item" style={menuItemStyle} onClick={() => openRole('contractor')}>Contractor</button>
-              <button className="menu-item" style={menuItemStyle} onClick={() => openRole('client')}>Client</button>
-              <div style={menuDivider} />
-              <button className="menu-item" style={menuItemStyle} onClick={() => navigate('/demo-dashboard')}>Try Demo</button>
-            </div>
-          )}
+          {/* Sign Up */}
+          <div style={{ position: "relative" }} ref={signUpMenuRef}>
+            <button className="nav-btn" onClick={() => setShowSignUpMenu(v => !v)}>
+              Sign Up ▾
+            </button>
+            {showSignUpMenu && (
+              <div className="menu-panel">
+                <button className="menu-item" onClick={() => goRolePricing("builder")}>Builder</button>
+                <button className="menu-item" onClick={() => goRolePricing("contractor")}>Contractor</button>
+                <button className="menu-item" onClick={() => goRolePricing("client")}>Client / Developer</button>
+              </div>
+            )}
+          </div>
+
+          {/* Login */}
+          <div style={{ position: "relative" }} ref={loginMenuRef}>
+            <button className="nav-btn" onClick={() => setShowLoginMenu(v => !v)}>
+              Login ▾
+            </button>
+            {showLoginMenu && (
+              <div className="menu-panel">
+                <button className="menu-item" onClick={() => openRole("builder")}>Builder</button>
+                <button className="menu-item" onClick={() => openRole("contractor")}>Contractor</button>
+                <button className="menu-item" onClick={() => openRole("client")}>Client / Developer</button>
+                <div style={{ height: 1, background: "#e5e7eb", margin: "6px 0" }} />
+                <button className="menu-item" onClick={() => navigate("/demo-dashboard")}>
+                  Try Demo
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button className="nav-btn" onClick={onOpenContact}>Contact Us</button>
         </div>
-
-        <button className="nav-btn" style={navBtn} onClick={onOpenContact}>Contact Us</button>
       </div>
     </div>
   );
 }
 
-const navBtn = {
-  backgroundColor: '#1f2937',
-  color: '#fff',
-  padding: '10px 16px',
-  borderRadius: '8px',
-  fontWeight: '600',
-  border: 'none',
-  cursor: 'pointer',
-  transition: 'background 0.15s ease',
-};
-
-const menuStyle = {
-  position: 'absolute',
-  top: '48px',
-  right: 0,
-  background: '#1f2937',
-  color: '#fff',
-  borderRadius: '8px',
-  boxShadow: '0 10px 20px rgba(0,0,0,0.15)',
-  padding: '6px',
-  minWidth: '220px',
-  display: 'flex',
-  flexDirection: 'column',
-  zIndex: 1000,
-};
-
-const menuItemStyle = {
-  background: 'transparent',
-  border: 'none',
-  textAlign: 'left',
-  padding: '10px 12px',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  color: '#ffffff',
-  fontWeight: 600,
-  transition: 'background 0.15s ease, color 0.15s ease',
-};
-
-const menuDivider = { height: '1px', background: '#e5e7eb', margin: '6px 0' };
-
 export default Header;
+
+
+
+
+
+
+
+
+
+

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
 function Navbar({ onOpenLogin, onOpenContact }) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -16,53 +17,67 @@ function Navbar({ onOpenLogin, onOpenContact }) {
         setShowDropdown(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div className="flex justify-end gap-4 p-4 relative z-50 pointer-events-auto">
-      <div className="relative" ref={dropdownRef}>
+    <div className="flex items-center justify-between px-6 py-3 bg-[#0b1e33] relative z-50">
+      {/* Left side: Logo */}
+      <Link to="/" className="flex items-center gap-3">
+        <img
+          src="/logo-trusta.png"
+          alt="TRUSTA Logo"
+          className="h-12 w-auto"
+        />
+        <span className="text-white font-extrabold text-xl tracking-wide">
+          TRUSTA
+        </span>
+      </Link>
+
+      {/* Right side: Actions */}
+      <div className="flex items-center gap-4">
+        <div className="relative" ref={dropdownRef}>
+          <button
+            className="bg-gray-800 text-white px-4 py-2 rounded font-semibold"
+            onClick={() => setShowDropdown((prev) => !prev)}
+          >
+            Login ▾
+          </button>
+
+          {showDropdown && (
+            <div className="absolute right-0 mt-2 w-40 bg-gray-800 text-white rounded shadow-lg flex flex-col">
+              <button
+                className="px-4 py-2 hover:bg-gray-700 text-left"
+                onClick={() => handleLogin("builder")}
+              >
+                Builder
+              </button>
+              <button
+                className="px-4 py-2 hover:bg-gray-700 text-left"
+                onClick={() => handleLogin("contractor")}
+              >
+                Contractor
+              </button>
+              <button
+                className="px-4 py-2 hover:bg-gray-700 text-left"
+                onClick={() => handleLogin("client")}
+              >
+                Client
+              </button>
+            </div>
+          )}
+        </div>
+
         <button
-          className="bg-gray-800 text-white px-4 py-2 rounded font-semibold pointer-events-auto z-50"
-          onClick={() => setShowDropdown((prev) => !prev)}
+          className="bg-gray-800 text-white px-4 py-2 rounded font-semibold"
+          onClick={onOpenContact}
         >
-          Login
+          Contact Us
         </button>
-
-        {showDropdown && (
-          <div className="absolute right-0 mt-2 w-40 bg-gray-800 text-white rounded shadow-lg flex flex-col z-50 pointer-events-auto">
-            <button
-              className="px-4 py-2 hover:bg-gray-700 text-left pointer-events-auto"
-              onClick={() => handleLogin('builder')}
-            >
-              Builder
-            </button>
-            <button
-              className="px-4 py-2 hover:bg-gray-700 text-left pointer-events-auto"
-              onClick={() => handleLogin('contractor')}
-            >
-              Contractor
-            </button>
-            <button
-              className="px-4 py-2 hover:bg-gray-700 text-left pointer-events-auto"
-              onClick={() => handleLogin('client')}
-            >
-              Client
-            </button>
-          </div>
-        )}
       </div>
-
-      <button
-        className="bg-gray-800 text-white px-4 py-2 rounded font-semibold pointer-events-auto z-50"
-        onClick={onOpenContact}
-      >
-        Contact Us
-      </button>
     </div>
   );
 }
 
 export default Navbar;
-

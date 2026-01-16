@@ -1,10 +1,13 @@
+/* =========================
+   GLOBAL THEME
+========================= */
 :root {
-  --primary-gray: #36454F;         /* updated charcoal */
-  --accent-orange: #FF8904;
-  --text-primary: #1F2937;
-  --bg-light: #F9FAFB;
-  --bg-dark: #36454F;              /* switched from Stone 500 to Charcoal */
-  --border-light: #E5E7EB;
+  --primary-gray: #36454F;       /* Charcoal */
+  --accent-orange: #FF8904;      /* Brand Accent */
+  --text-primary: #1F2937;       /* Dark Slate */
+  --bg-light: #F9FAFB;           /* Light background */
+  --bg-dark: #36454F;            /* Charcoal */
+  --border-light: #E5E7EB;       /* Soft gray border */
 }
 
 body {
@@ -14,64 +17,38 @@ body {
   color: var(--text-primary);
 }
 
-/* Header section */
+/* =========================
+   PUBLIC HEADER
+========================= */
 .header {
   background-color: var(--bg-dark);
   color: white;
-  padding: 20px 40px;
+  padding: 16px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border-light);
 }
 
-.logo-section {
-  display: flex;
-  align-items: center;
-}
+.logo-section { display: flex; align-items: center; gap: 16px; }
+.logo-img { height: 48px; width: auto; }
+.logo-text { font-size: 1.75rem; font-weight: bold; color: white; }
 
-.logo-img {
-  height: 400px;
-  margin-right: 32px;
-}
-
-.logo-text {
-  font-size: 48px;
-  font-weight: bold;
-  color: white;
-}
-
-.nav-links {
-  display: flex;
-}
-
+.nav-links { display: flex; align-items: center; gap: 20px; }
 .nav-link {
-  margin-left: 20px;
   color: var(--accent-orange);
   text-decoration: none;
   font-weight: bold;
+  transition: color 0.2s ease;
 }
+.nav-link:hover { text-decoration: underline; color: white; }
 
-.nav-link:hover {
-  text-decoration: underline;
-}
-
-/* Main content */
-.main-content {
-  text-align: center;
-  padding: 100px 20px;
-}
-
-.tagline {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-  color: var(--primary-gray);
-}
-
-.subtext {
-  font-size: 1.2rem;
-  margin-bottom: 40px;
-}
+/* =========================
+   PUBLIC MAIN
+========================= */
+.main-content { text-align: center; padding: 80px 20px; }
+.tagline { font-size: 2.5rem; margin-bottom: 20px; color: var(--primary-gray); }
+.subtext { font-size: 1.2rem; margin-bottom: 40px; color: var(--text-primary); }
 
 .demo-btn {
   background-color: var(--primary-gray);
@@ -81,9 +58,190 @@ body {
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.15s ease;
+}
+.demo-btn:hover { background-color: var(--accent-orange); transform: translateY(-1px); }
+
+/* ===========================================================
+   DASHBOARD LAYOUT (RIGHT-SIDE NAV + CONTENT + KPI CARDS)
+   Used by DashboardLayout.jsx
+=========================================================== */
+.dash-shell {
+  display: grid;
+  grid-template-columns: 1fr 280px; /* main content | right rail */
+  min-height: 100vh;
+  background: var(--bg-light);
 }
 
-.demo-btn:hover {
-  background-color: var(--accent-orange);
+.dash-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid var(--border-light);
+  padding: 10px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.dash-brand { font-weight: 700; letter-spacing: .3px; }
+.dash-actions { display: flex; align-items: center; gap: .5rem; }
+.dash-search {
+  padding: .4rem .6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  min-width: 180px;
+}
+
+.icon-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; }
+
+.dash-main { padding: 16px; }
+
+/* --- Right Rail --- */
+.dash-rail {
+  background: #fff;
+  border-left: 1px solid var(--border-light);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 48px;       /* sits below header */
+  height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.rail-nav { display: flex; flex-direction: column; gap: 4px; }
+.rail-link {
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: #374151;
+  text-decoration: none;
+  font-size: .95rem;
+}
+.rail-link:hover { background: #f3f4f6; }
+.rail-link.active { background: #e0f2fe; color: #0369a1; }
+
+.rail-divider { height: 1px; background: var(--border-light); margin: 6px 0; }
+
+.rail-card {
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+}
+.rail-title { font-weight: 700; margin-bottom: 6px; font-size: .9rem; }
+
+.rail-btn {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  font-size: .85rem;
+  cursor: pointer;
+}
+.rail-btn:hover { background: #f3f4f6; }
+
+/* Jobs metrics */
+.rail-metrics { display: flex; gap: 12px; margin-bottom: 6px; }
+.metric { flex: 1; text-align: center; }
+.metric-num { font-weight: 700; font-size: 1.1rem; }
+.metric-label { font-size: .78rem; color: #6b7280; }
+
+/* Milestones */
+.rail-list { list-style: none; padding: 0; margin: 0; }
+.rail-list-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid #f3f4f6;
+}
+.rail-list-item:last-child { border-bottom: none; }
+.rail-list-title { font-size: .85rem; font-weight: 500; }
+.rail-list-sub { font-size: .7rem; color: #9ca3af; }
+
+.badge { font-size: .7rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+
+/* --- KPI Cards on main panel --- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.kpi-card {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 14px;
+}
+.kpi-value { font-size: 1.5rem; font-weight: 800; color: var(--primary-gray); }
+.kpi-label { color: #6b7280; font-size: .92rem; }
+
+/* --- Responsive --- */
+@media (max-width: 980px) {
+  .dash-shell { grid-template-columns: 1fr; }
+  .dash-rail {
+    position: static;
+    height: auto;
+    border-left: none;
+    border-top: 1px solid var(--border-light);
+  }
+}
+
+/* ===========================================================
+   ADDED: Top KPI Strip styles (to match dashboard screenshot)
+   (No existing rules were modified.)
+=========================================================== */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+@media (max-width: 1280px) {
+  .kpi-strip { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+}
+
+.topkpi {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 96px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.topkpi::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 6px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  background: linear-gradient(90deg, #e5e7eb, #e5e7eb);
+}
+
+/* gradient accents for the strip */
+.topkpi--blue::before   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.topkpi--green::before  { background: linear-gradient(90deg, #10b981, #34d399); }
+.topkpi--emerald::before{ background: linear-gradient(90deg, #22c55e, #86efac); }
+.topkpi--teal::before   { background: linear-gradient(90deg, #0ea5e9, #22d3ee); }
+
+.topkpi__label { font-size: 12px; color: #6b7280; }
+.topkpi__value { margin-top: 2px; font-size: 26px; font-weight: 800; color: var(--text-primary); }
+.topkpi__sub   { margin-top: 2px; font-size: 12px; color: #6b7280; }
+
+/* optional: trust badge */
+.trust-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #10b981;
+  background: #10b98122;
 }

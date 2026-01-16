@@ -1,8 +1,36 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// C:\TRUSTA-FRONTEND\src\App.jsx
+import React, { useState, useEffect, Suspense } from 'react';
+import { HashRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+
+// -------- Error boundary so Chrome shows the error instead of a white screen -------
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, err: null };
+  }
+  static getDerivedStateFromError(err) {
+    return { hasError: true, err };
+  }
+  componentDidCatch(err, info) {
+    console.error('Render error:', err, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 24 }}>
+          <h2 style={{ margin: 0 }}>Something went wrong rendering this page.</h2>
+          <p style={{ color: '#b91c1c' }}>{String(this.state.err)}</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+// ----------------------------------------------------------------------------------
 
 // Components
 import Header from './components/Header';
+import DashboardLayout from './layouts/DashboardLayout.jsx';
 
 // Pages
 import Home from './pages/Home.jsx';
@@ -15,11 +43,23 @@ import ClientDashboard from './pages/ClientDashboard.jsx';
 import About from './pages/About.jsx';
 import Pricing from './pages/Pricing.jsx';
 import Features from './pages/Features.jsx';
-import Signup from './pages/Signup.jsx'; // <-- NEW
+import Signup from './pages/Signup.jsx';
+import Projects from './pages/Projects.jsx';
+import ProjectDetail from './pages/ProjectDetail.jsx';
 
 // Styles
 import './index.css';
 import './style.css';
+
+// Public layout (shows your existing Header)
+function PublicLayout({ onOpenLogin, onOpenContact }) {
+  return (
+    <>
+      <Header onOpenLogin={onOpenLogin} onOpenContact={onOpenContact} />
+      <Outlet />
+    </>
+  );
+}
 
 function App() {
   const [loginType, setLoginType] = useState('');
@@ -27,7 +67,14 @@ function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Contact form state
+  // Deep-link helper for HashRouter (only convert real deep links)
+  useEffect(() => {
+    const path = window.location.pathname || '/';
+    if (!window.location.hash && path !== '/' && !path.startsWith('/@')) {
+      window.location.replace(`/#${path}${window.location.search}`);
+    }
+  }, []);
+
   const [contact, setContact] = useState({
     firstName: '',
     lastName: '',
@@ -51,7 +98,6 @@ function App() {
       alert('Please fill in all required fields.');
       return;
     }
-    // TODO: send to your backend/email service here
     alert('Thanks! Your message has been sent.');
     setContact({
       firstName: '',
@@ -66,12 +112,11 @@ function App() {
     closeContact();
   };
 
-  const openLogin = (type) => {
-    setLoginType(type);
+  const openLogin = (type = 'builder') => {
+    setLoginType(type || 'builder');
     setEmail('');
     setPassword('');
   };
-
   const closeLogin = () => {
     setLoginType('');
     setEmail('');
@@ -81,59 +126,78 @@ function App() {
   const openContact = () => setShowContact(true);
   const closeContact = () => setShowContact(false);
 
+  const routesByRole = {
+    builder: '/builder-dashboard',
+    contractor: '/contractor-dashboard',
+    client: '/client-dashboard',
+  };
+
+  // HashRouter-safe navigation
+  const go = (target) => {
+    window.location.hash = `#${target}`;
+  };
+
   const handleConfirmLogin = () => {
     if (!email || !password) {
       alert('Please enter email and password');
       return;
     }
-    const routes = {
-      builder: '/builder-dashboard',
-      contractor: '/contractor-dashboard',
-      client: '/client-dashboard',
-    };
-    window.location.href = routes[loginType];
+    const target = routesByRole[loginType] || '/builder-dashboard';
+    go(target);
     closeLogin();
   };
 
   const handleDemoLogin = () => {
-    const routes = {
-      builder: '/builder-dashboard',
-      contractor: '/contractor-dashboard',
-      client: '/client-dashboard',
-    };
-    window.location.href = routes[loginType];
+    const target = routesByRole[loginType] || '/builder-dashboard';
+    go(target);
     closeLogin();
   };
 
+  const DASH_LOGO = '/logo-trusta.png';
+
+
   return (
     <Router>
-      <Header onOpenLogin={openLogin} onOpenContact={openContact} />
+      <ErrorBoundary>
+        <Suspense fallback={<div style={{ padding: 24 }}>Loading…</div>}>
+          <Routes>
+            <Route path="/" element={<PublicLayout onOpenLogin={openLogin} onOpenContact={openContact} />}>
+              <Route index element={<Home />} />
+              <Route path="home" element={<Home />} />
+              <Route path="about" element={<About />} />
+              <Route path="pricing" element={<Pricing />} />
+              <Route path="features" element={<Features />} />
+              <Route path="signup" element={<Signup />} />
+              <Route path="builder-login" element={<BuilderLogin />} />
+              <Route path="contractor-login" element={<ContractorLogin />} />
+              <Route path="client-login" element={<ClientLogin />} />
+            </Route>
 
-      <Routes>
-        <Route path="/" element={<Home />} />
+            <Route
+              element={
+                <DashboardLayout
+                  orgName="TRUSTA"
+                  logoSrc={DASH_LOGO}
+                  displayName="Multicon Builders"
+                />
+              }
+            >
+              <Route path="/builder" element={<BuilderDashboard />} />
+              <Route path="/builder-dashboard" element={<BuilderDashboard />} />
+              <Route path="/contractor" element={<ContractorDashboard />} />
+              <Route path="/contractor-dashboard" element={<ContractorDashboard />} />
+              <Route path="/client" element={<ClientDashboard />} />
+              <Route path="/client-dashboard" element={<ClientDashboard />} />
+              <Route path="/demo-dashboard" element={<BuilderDashboard />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+            </Route>
 
-        {/* Basic pages */}
-        <Route path="/about" element={<About />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/features" element={<Features />} />
-        <Route path="/signup" element={<Signup />} /> {/* <-- NEW */}
-
-        {/* Login pages */}
-        <Route path="/builder-login" element={<BuilderLogin />} />
-        <Route path="/contractor-login" element={<ContractorLogin />} />
-        <Route path="/client-login" element={<ClientLogin />} />
-
-        {/* Dashboards */}
-        <Route path="/builder" element={<BuilderDashboard />} />
-        <Route path="/contractor" element={<ContractorDashboard />} />
-        <Route path="/client" element={<ClientDashboard />} />
-        <Route path="/builder-dashboard" element={<BuilderDashboard />} />
-        <Route path="/contractor-dashboard" element={<ContractorDashboard />} />
-        <Route path="/client-dashboard" element={<ClientDashboard />} />
-
-        {/* Demo alias */}
-        <Route path="/demo-dashboard" element={<BuilderDashboard />} />
-      </Routes>
+            <Route path="/dashboard" element={<Navigate to="/builder-dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Global Login Modal */}
       {loginType && (
@@ -165,16 +229,11 @@ function App() {
         </div>
       )}
 
-      {/* Global Contact Modal – detailed form */}
+      {/* Global Contact Modal */}
       {showContact && (
         <div style={overlayStyle} onClick={closeContact}>
           <div
-            style={{
-              ...modalStyle,
-              maxWidth: 820,
-              width: '94%',
-              textAlign: 'left',
-            }}
+            style={{ ...modalStyle, maxWidth: 820, width: '94%', textAlign: 'left' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ ...titleStyle, marginBottom: 10, textAlign: 'left' }}>
@@ -345,10 +404,7 @@ const modalStyle = {
   minWidth: '350px',
 };
 
-const titleStyle = {
-  marginBottom: '20px',
-  fontWeight: 'bold',
-};
+const titleStyle = { marginBottom: '20px', fontWeight: 'bold' };
 
 const inputStyle = {
   width: '100%',
@@ -386,3 +442,5 @@ const closeBtnStyle = {
 };
 
 export default App;
+
+
