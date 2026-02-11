@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 /**
  * NewJobWizard
  * - 5 steps with clickable tabs
@@ -9,7 +11,7 @@ import React, { useMemo, useState } from "react";
  *
  * Props:
  *  - onClose(): close the modal
- *  - onSaved?(payload): called after "Save" (stub)
+ *  - onSaved?(job): called after Save with created job (used to update Projects list)
  */
 export default function NewJobWizard({ onClose, onSaved }) {
   const STEPS = useMemo(
@@ -76,11 +78,61 @@ export default function NewJobWizard({ onClose, onSaved }) {
   const removeFile = (name) =>
     set({ files: form.files.filter((f) => f.name !== name) });
 
+  // "1,250,000" -> 1250000
+  const parseAUD = (raw) => {
+    const cleaned = String(raw || "")
+      .replaceAll(",", "")
+      .replace(/[^\d.]/g, "")
+      .trim();
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  };
+
   const save = async () => {
-    // Minimal stub – wire this to your API when ready.
-    const payload = { ...form, files: form.files.map((f) => f.name) };
-    onSaved?.(payload);
-    onClose?.();
+    // Build the job record that your Projects table expects
+    const job = {
+      id: form.jobId.trim(),
+      title: form.title.trim(),
+      client: form.orgName.trim(),
+      status: form.status || "Active",
+      value: parseAUD(form.estimatedValue),
+      // extra fields (safe to send; backend can ignore)
+      mode: form.mode,
+      partyType: form.partyType,
+      contactName: form.contactName,
+      contactEmail: form.contactEmail,
+      contactPhone: form.contactPhone,
+      siteAddress: form.siteAddress,
+      lotPlan: form.lotPlan,
+      notes: form.notes,
+      files: form.files.map((f) => f.name),
+    };
+
+    try {
+      const r = await fetch(`${API}/api/jobs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(job),
+      });
+
+      if (!r.ok) {
+        const txt = await r.text().catch(() => "");
+        throw new Error(txt || `HTTP ${r.status}`);
+      }
+
+      // backend may return created job or {job: ...}
+      const data = await r.json().catch(() => null);
+      const created =
+        (data && data.job) ||
+        (data && data.id && data.title ? data : null) ||
+        job;
+
+      onSaved?.(created);
+      onClose?.();
+    } catch (e) {
+      alert(`Could not save job.\n\n${e?.message || "Unknown error"}`);
+      // keep modal open so user doesn't lose their work
+    }
   };
 
   return (
@@ -107,15 +159,9 @@ export default function NewJobWizard({ onClose, onSaved }) {
 
         {/* Body */}
         <div style={{ padding: 18, paddingTop: 8 }}>
-          {stepIdx === 0 && (
-            <StepMode form={form} set={set} />
-          )}
-          {stepIdx === 1 && (
-            <StepCompany form={form} set={set} />
-          )}
-          {stepIdx === 2 && (
-            <StepSite form={form} set={set} />
-          )}
+          {stepIdx === 0 && <StepMode form={form} set={set} />}
+          {stepIdx === 1 && <StepCompany form={form} set={set} />}
+          {stepIdx === 2 && <StepSite form={form} set={set} />}
           {stepIdx === 3 && (
             <StepDocs
               form={form}
@@ -223,20 +269,14 @@ function StepMode({ form, set }) {
       <Row>
         <div>
           <Label>Mode</Label>
-          <Select
-            value={form.mode}
-            onChange={(e) => set({ mode: e.target.value })}
-          >
+          <Select value={form.mode} onChange={(e) => set({ mode: e.target.value })}>
             <option>Create new job</option>
             <option>Accept invite</option>
           </Select>
         </div>
         <div>
           <Label>Status</Label>
-          <Select
-            value={form.status}
-            onChange={(e) => set({ status: e.target.value })}
-          >
+          <Select value={form.status} onChange={(e) => set({ status: e.target.value })}>
             <option>Active</option>
             <option>Planning</option>
             <option>On Hold</option>
@@ -282,10 +322,7 @@ function StepCompany({ form, set }) {
       <Row>
         <div>
           <Label>Party Type</Label>
-          <Select
-            value={form.partyType}
-            onChange={(e) => set({ partyType: e.target.value })}
-          >
+          <Select value={form.partyType} onChange={(e) => set({ partyType: e.target.value })}>
             <option>Builder / General Contractor</option>
             <option>Client / Owner</option>
             <option>Subcontractor</option>
@@ -363,12 +400,7 @@ function StepDocs({ form, set, onPickFiles, removeFile }) {
   return (
     <>
       <Label>Plans / Documents (PDF)</Label>
-      <input
-        type="file"
-        accept="application/pdf"
-        multiple
-        onChange={onPickFiles}
-      />
+      <input type="file" accept="application/pdf" multiple onChange={onPickFiles} />
       {!!form.files.length && (
         <ul style={{ margin: "10px 0 0 0", paddingLeft: 18 }}>
           {form.files.map((f) => (

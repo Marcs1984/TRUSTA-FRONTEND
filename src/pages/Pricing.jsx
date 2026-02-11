@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
+// ✅ NEW: AuthContext hook
+import { useAuth } from '../context/AuthContext.jsx';
+
 const BRAND_DARK = '#0b4a6f';
 const ORANGE = '#F7931E';
 const LIGHT_ORANGE = '#FFF4E5';
@@ -9,6 +12,9 @@ const LIGHT_ORANGE = '#FFF4E5';
 export default function Pricing() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+
+  // ✅ NEW: get login() from AuthContext
+  const { login } = useAuth();
 
   const role = (params.get('role') || 'builder').toLowerCase();
   const active = ['builder', 'contractor', 'client'].includes(role) ? role : 'builder';
@@ -189,16 +195,33 @@ export default function Pricing() {
     setForm((f) => ({ ...f, [name]: value }));
   };
 
+  // ✅ NEW: derive the header display name from the form (what you typed)
+  const getDisplayNameFromForm = (roleName, f) => {
+    if (!f) return '';
+    if (roleName === 'client') {
+      return (f.clientCompanyName || f.clientFullName || '').trim();
+    }
+    // builder/contractor: prefer trading name if provided, otherwise legal name
+    return (f.companyTradingName || f.companyLegalName || '').trim();
+  };
+
   const onSubmit = (e) => {
     e.preventDefault();
-    // persist a lightweight session for the dashboard
+
+    // persist a lightweight session for the dashboard (existing behavior)
     try {
       localStorage.setItem(
         'trusta_signup',
         JSON.stringify({ role: active, plan: selectedPlan, form })
       );
     } catch {}
+
+    // ✅ NEW: set AuthContext so DashboardLayout shows the company name
+    const displayName = getDisplayNameFromForm(active, form) || 'TRUSTA User';
+    login({ role: active, displayName, email: form.companyEmail || form.clientEmail || '' });
+
     setOpen(false);
+
     // go straight to the dashboard (instead of login)
     navigate(dashboardPath);
   };
@@ -239,7 +262,10 @@ export default function Pricing() {
           onClose={() => setOpen(false)}
           onSubmit={onSubmit}
           loginPath={loginPath}
-          dashboardPath={dashboardPath} // NEW
+          dashboardPath={dashboardPath}
+          // ✅ NEW: pass login + helper into the modal so Demo & Continue can set AuthContext too
+          login={login}
+          getDisplayNameFromForm={getDisplayNameFromForm}
         />
       )}
     </div>
@@ -320,7 +346,20 @@ function getDemoData(role) {
 }
 
 /* ===================== Modal ===================== */
-function SignupModal({ role, plan, form, setForm, onChange, onClose, onSubmit, loginPath, dashboardPath }) {
+function SignupModal({
+  role,
+  plan,
+  form,
+  setForm,
+  onChange,
+  onClose,
+  onSubmit,
+  loginPath,
+  dashboardPath,
+  // ✅ NEW
+  login,
+  getDisplayNameFromForm,
+}) {
   const heading =
     role === 'builder' ? 'Builder / Developer details'
     : role === 'contractor' ? 'Contractor details'
@@ -340,14 +379,19 @@ function SignupModal({ role, plan, form, setForm, onChange, onClose, onSubmit, l
   const demoAndContinue = () => {
     const data = getDemoData(role);
     setForm(data);
+
     try {
       localStorage.setItem(
         'trusta_signup',
         JSON.stringify({ role, plan, form: data })
       );
     } catch {}
+
+    // ✅ NEW: set AuthContext for demo too
+    const displayName = getDisplayNameFromForm(role, data) || 'TRUSTA User';
+    login({ role, displayName, email: data.companyEmail || data.clientEmail || '' });
+
     onClose();
-    // straight to dashboard instead of login
     navigate(dashboardPath);
   };
 
@@ -678,4 +722,3 @@ const saveBtn = {
   fontWeight: 900,
   cursor: 'pointer',
 };
-

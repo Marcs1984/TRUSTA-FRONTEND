@@ -84,7 +84,6 @@ function Header({ onOpenLogin, onOpenContact }) {
           transition: box-shadow .15s ease, transform .05s ease;
         }
 
-        /* 🔥 STRONGER WARNING ORANGE GLOW */
         .nav-btn:hover,
         .nav-btn:focus-visible {
           box-shadow:
@@ -137,13 +136,13 @@ function Header({ onOpenLogin, onOpenContact }) {
         }
       `}</style>
 
+      {/* Container for logo (kept simple) */}
       <div
         style={{
           height: "100%",
           paddingLeft: PADDING_X,
           paddingRight: PADDING_X,
-          display: "flex",
-          flexDirection: "column",
+          position: "relative",
         }}
       >
         {/* Logo */}
@@ -161,46 +160,67 @@ function Header({ onOpenLogin, onOpenContact }) {
           </Link>
         </div>
 
-        {/* Nav */}
+        {/* Nav — pinned INSIDE the header bottom-right */}
         <div
           style={{
-            marginTop: "auto",
-            paddingBottom: 10,
+            position: "absolute",
+            right: PADDING_X,
+            bottom: 10,
             display: "flex",
             gap: 10,
             justifyContent: "flex-end",
             flexWrap: "wrap",
           }}
         >
-          <button className="nav-btn" onClick={() => navigate("/")}>Home</button>
-          <button className="nav-btn" onClick={() => navigate("/pricing")}>Pricing</button>
-          <button className="nav-btn" onClick={() => navigate("/about")}>About Us</button>
-          <button className="nav-btn" onClick={goFeatures}>Features</button>
+          <button className="nav-btn" onClick={() => navigate("/")}>
+            Home
+          </button>
+          <button className="nav-btn" onClick={() => navigate("/pricing")}>
+            Pricing
+          </button>
+          <button className="nav-btn" onClick={() => navigate("/about")}>
+            About Us
+          </button>
+          <button className="nav-btn" onClick={goFeatures}>
+            Features
+          </button>
 
           {/* Sign Up */}
           <div style={{ position: "relative" }} ref={signUpMenuRef}>
-            <button className="nav-btn" onClick={() => setShowSignUpMenu(v => !v)}>
+            <button className="nav-btn" onClick={() => setShowSignUpMenu((v) => !v)}>
               Sign Up ▾
             </button>
             {showSignUpMenu && (
               <div className="menu-panel">
-                <button className="menu-item" onClick={() => goRolePricing("builder")}>Builder</button>
-                <button className="menu-item" onClick={() => goRolePricing("contractor")}>Contractor</button>
-                <button className="menu-item" onClick={() => goRolePricing("client")}>Client / Developer</button>
+                <button className="menu-item" onClick={() => goRolePricing("builder")}>
+                  Builder
+                </button>
+                <button className="menu-item" onClick={() => goRolePricing("contractor")}>
+                  Contractor
+                </button>
+                <button className="menu-item" onClick={() => goRolePricing("client")}>
+                  Client / Developer
+                </button>
               </div>
             )}
           </div>
 
           {/* Login */}
           <div style={{ position: "relative" }} ref={loginMenuRef}>
-            <button className="nav-btn" onClick={() => setShowLoginMenu(v => !v)}>
+            <button className="nav-btn" onClick={() => setShowLoginMenu((v) => !v)}>
               Login ▾
             </button>
             {showLoginMenu && (
               <div className="menu-panel">
-                <button className="menu-item" onClick={() => openRole("builder")}>Builder</button>
-                <button className="menu-item" onClick={() => openRole("contractor")}>Contractor</button>
-                <button className="menu-item" onClick={() => openRole("client")}>Client / Developer</button>
+                <button className="menu-item" onClick={() => openRole("builder")}>
+                  Builder
+                </button>
+                <button className="menu-item" onClick={() => openRole("contractor")}>
+                  Contractor
+                </button>
+                <button className="menu-item" onClick={() => openRole("client")}>
+                  Client / Developer
+                </button>
                 <div style={{ height: 1, background: "#e5e7eb", margin: "6px 0" }} />
                 <button className="menu-item" onClick={() => navigate("/demo-dashboard")}>
                   Try Demo
@@ -209,7 +229,9 @@ function Header({ onOpenLogin, onOpenContact }) {
             )}
           </div>
 
-          <button className="nav-btn" onClick={onOpenContact}>Contact Us</button>
+          <button className="nav-btn" onClick={onOpenContact}>
+            Contact Us
+          </button>
         </div>
       </div>
     </div>
@@ -217,13 +239,4 @@ function Header({ onOpenLogin, onOpenContact }) {
 }
 
 export default Header;
-
-
-
-
-
-
-
-
-
 

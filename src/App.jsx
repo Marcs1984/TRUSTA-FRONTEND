@@ -2,6 +2,9 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 
+// ✅ NEW: Auth context
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+
 // -------- Error boundary so Chrome shows the error instead of a white screen -------
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -46,6 +49,7 @@ import Features from './pages/Features.jsx';
 import Signup from './pages/Signup.jsx';
 import Projects from './pages/Projects.jsx';
 import ProjectDetail from './pages/ProjectDetail.jsx';
+import TradeDetail from './pages/TradeDetail.jsx'; // ✅ NEW
 
 // Styles
 import './index.css';
@@ -61,7 +65,13 @@ function PublicLayout({ onOpenLogin, onOpenContact }) {
   );
 }
 
-function App() {
+/**
+ * ✅ We split the app in two:
+ * - App() provides AuthProvider
+ * - AppInner() uses useAuth() safely inside the provider
+ */
+function AppInner() {
+  const { user, login } = useAuth(); // ✅ NEW
   const [loginType, setLoginType] = useState('');
   const [showContact, setShowContact] = useState(false);
   const [email, setEmail] = useState('');
@@ -137,24 +147,48 @@ function App() {
     window.location.hash = `#${target}`;
   };
 
+  // ✅ helper: build a readable name from email if we don't have a company name yet
+  const displayNameFromEmail = (emailStr) => {
+    if (!emailStr) return '';
+    const at = emailStr.indexOf('@');
+    if (at <= 0) return emailStr.trim();
+    return emailStr.slice(0, at).trim();
+  };
+
   const handleConfirmLogin = () => {
     if (!email || !password) {
       alert('Please enter email and password');
       return;
     }
-    const target = routesByRole[loginType] || '/builder-dashboard';
+
+    // ✅ Set session in AuthContext (so DashboardLayout can show it)
+    const role = loginType || 'builder';
+    const fallbackName = displayNameFromEmail(email) || `${role.toUpperCase()} User`;
+    login({ role, displayName: fallbackName, email });
+
+    const target = routesByRole[role] || '/builder-dashboard';
     go(target);
     closeLogin();
   };
 
   const handleDemoLogin = () => {
-    const target = routesByRole[loginType] || '/builder-dashboard';
+    // ✅ Demo session name is obvious and role-based
+    const role = loginType || 'builder';
+    const demoName =
+      role === 'builder'
+        ? 'Demo Builder'
+        : role === 'contractor'
+          ? 'Demo Contractor'
+          : 'Demo Client';
+
+    login({ role, displayName: demoName, email: '' });
+
+    const target = routesByRole[role] || '/builder-dashboard';
     go(target);
     closeLogin();
   };
 
   const DASH_LOGO = '/logo-trusta.png';
-
 
   return (
     <Router>
@@ -178,7 +212,8 @@ function App() {
                 <DashboardLayout
                   orgName="TRUSTA"
                   logoSrc={DASH_LOGO}
-                  displayName="Multicon Builders"
+                  // ✅ CHANGED: dynamic display name from AuthContext (fallback to safe text)
+                  displayName={user?.displayName || 'TRUSTA User'}
                 />
               }
             >
@@ -191,6 +226,9 @@ function App() {
               <Route path="/demo-dashboard" element={<BuilderDashboard />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
+
+              {/* ✅ MVP: Trade detail route (REAL) */}
+              <Route path="/projects/:id/trades/:tradeId" element={<TradeDetail />} />
             </Route>
 
             <Route path="/dashboard" element={<Navigate to="/builder-dashboard" replace />} />
@@ -381,6 +419,14 @@ function App() {
   );
 }
 
+function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
+  );
+}
+
 // Styles
 const overlayStyle = {
   position: 'fixed',
@@ -442,5 +488,4 @@ const closeBtnStyle = {
 };
 
 export default App;
-
 
